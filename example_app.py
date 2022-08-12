@@ -1,6 +1,8 @@
 from events_inpsect.blockchain_scan import Pair, BlockChainScan
 from events_inpsect.web3_provider import MyWeb3
+from events_inpsect.config import NETWORKS
 import time
+
 
 
 

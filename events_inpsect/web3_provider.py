@@ -43,17 +43,14 @@ class MyWeb3(Web3):
             }
     }
 
-    networks = {
-        'bsc': config.NETWORKS["bsc"],
-        'aurora': config.NETWORKS["aurora"],
-    }
+
 
     def __init__(self, network_name: str):
         self.network = self.get_network(network_name)
 
 
     def get_network(self, network_name: str):
-        network = self.networks.get(network_name.lower(), None)
+        network = config.NETWORKS.get(network_name.lower(), None)
         assert network, f"network_name not found in {self.networks}"
         return network
 
