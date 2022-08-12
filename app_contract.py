@@ -1,9 +1,10 @@
 from events_inpsect.web3_provider import MyWeb3
 from events_inpsect.contract_calls import get_pair_address, get_pair_decimals
+from events_inpsect.config import NETWORKS
 import time
 import json
 
-from itertools import product, permutations
+from itertools import product, combinations
 from dataclasses import dataclass, asdict
 
 @dataclass
@@ -44,9 +45,21 @@ FACTORIES = [
 
 ]
 
+def get_pairs_config(network_name: str = 'bsc') -> dict:
+    network = NETWORKS[network_name]
+    tokens = network['tokens']
+    factories = [ Factory(address=v, label=k) for k,v in network['factories'].items()]
+    token_mixin = [ Token(address=tokens[token_name], label=token_name) for token_name in network['generate_pair_params']['tokens_mixin_list']]
+    token_other = [ Token(address=tokens[token_name], label=token_name) for token_name in network['generate_pair_params']['tokens_other_list']]
+    return {
+        'factories': factories,
+        'tokens_mixin': token_mixin,
+        'tokens_other': token_other
+    }
+
 
 def get_pairs(web3: MyWeb3, tokens: list[Token], tokens_mixin: list[Token], factories: list[Factory]) -> list[Pair]:
-    mixin_pairs = list(permutations(tokens_mixin, 2))
+    mixin_pairs = list(combinations(tokens_mixin, 2))
     tokens_pairs = list(product(tokens, tokens_mixin))
     tokens_pairs.extend(mixin_pairs)
     pairs = []
@@ -69,20 +82,24 @@ def get_pairs(web3: MyWeb3, tokens: list[Token], tokens_mixin: list[Token], fact
 def pairs_to_csv(pairs: list[Pair], file_name: str = 'pairs') -> None:
     with open(file_name + '.csv', 'w') as f:
         for pair in pairs:
-            f.write(f'{pair.address},{pair.label},{pair.token0.address},{pair.token1.address},{pair.decimals}\n')
+            f.write(f'{pair.factory.address},{pair.address},{pair.label},{pair.token0.address},{pair.token1.address},{pair.decimals}\n')
 
 
 
 
 
 if __name__ == '__main__':
-    # web3 = MyWeb3('bsc').get_http_provider()
-    web3 = MyWeb3('bsc').get_ws_provider()
+
+    network_name = 'aurora'
+    web3 = MyWeb3(network_name).get_http_provider()
 
 
     tik = time.time()
 
-    pairs = get_pairs(web3, TOKENS,TOKENS_MIXIN, FACTORIES)
-    pairs_to_csv(pairs)
+    pairs_config = get_pairs_config(network_name)
+
+    # pairs = get_pairs(web3, TOKENS,TOKENS_MIXIN, FACTORIES)
+    pairs = get_pairs(web3, pairs_config['tokens_other'], pairs_config['tokens_mixin'], pairs_config['factories'])
+    pairs_to_csv(pairs, f'pairs_{network_name}')
     print('time:', time.time() - tik)
     

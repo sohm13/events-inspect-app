@@ -44,7 +44,8 @@ class MyWeb3(Web3):
     }
 
     networks = {
-        'bsc': config.NETWORKS["bsc"]
+        'bsc': config.NETWORKS["bsc"],
+        'aurora': config.NETWORKS["aurora"],
     }
 
     def __init__(self, network_name: str):

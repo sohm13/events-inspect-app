@@ -15,5 +15,7 @@ contract_calls -->-- [abi]
 ____________________________
 
 app -->-- [blockchain_scan, web3_provider]
-app_contract -->-- [contract_calls, web3_provider]
+app_contract -->-- [contract_calls, web3_provider, config]
 ```
+
+
