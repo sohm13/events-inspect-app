@@ -2,6 +2,7 @@ from .config import NETWORKS
 from .schemas import Factory, Token, PairDex, SkipToken, PairParams
 from .contract_calls import get_pair_address, get_pair_decimals, get_erc20_decimals
 from .web3_provider import MyWeb3
+from .utils import sort_tokens
 
 from itertools import product, combinations
 
@@ -18,6 +19,8 @@ def get_pairs_config(network_name: str = 'bsc') -> PairParams:
         tokens_mixin = token_mixin,
         tokens_other = token_other
     )
+
+
 
 
 def _make_token_pairs(tokens: list[Token], tokens_mixin: list[Token]) -> list[tuple[Token, Token]]: #
@@ -37,8 +40,8 @@ def get_pairs(
     tokens_pairs = _make_token_pairs(tokens, tokens_mixin)
     pairs = []
     for factory in factories:
-        for token0, token1 in tokens_pairs:
-            
+        for token_a, token_b in tokens_pairs:
+            token0, token1 = sort_tokens(token_a, token_b)
             is_black_list = False
             for skip_token in skip_tokens_list:
                 # check via plurality
