@@ -9,7 +9,7 @@ from typing import (
     Union,
     # cast,
 )
-from web3 import Web3, AsyncHTTPProvider
+from web3 import Web3
 from web3.eth import Eth
 from web3.net import Net
 from web3.version import Version
@@ -51,7 +51,7 @@ class MyWeb3(Web3):
 
     def get_network(self, network_name: str):
         network = config.NETWORKS.get(network_name.lower(), None)
-        assert network, f"network_name not found in {self.networks}"
+        assert network, f"network_name not found {network_name}"
         return network
 
 
