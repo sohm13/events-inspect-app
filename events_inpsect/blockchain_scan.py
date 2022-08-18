@@ -31,7 +31,7 @@ class BlockChainScan:
 
     
 
-    def get_sync_events(self, block_events: list[LogReceipt]):
+    def get_sync_events(self, block_events: list[LogReceipt]) -> list[SyncEvent]:
         events_return = []
         for event in block_events:
             sync_event = self.eth_event.pars_sync_event(event)
@@ -53,34 +53,15 @@ class BlockChainScan:
                 ...
                 ]
         '''
-        blocks = [self.eth_event.sync_event_from_blocks_filter(pair.address, block_range[0], block_range[1]) 
+        tasks = [self.eth_event.get_sync_logs_async(pair.address, block_range[0], block_range[1]) 
                     for pair, block_range in zip(pairs, pairs_block_range
                     )]
-        tasks = [self.get_sync_events_async(block) for block in blocks]
-        loop = asyncio.get_event_loop()
-        try:
-            pairs_event_logs: list[list[Optional[SyncEvent]]] = loop.run_until_complete(
-                                                        asyncio.gather(*tasks)
-                                                        )
-        finally:
-            loop.close()            
-        return pairs_event_logs
 
-    def get_scan_event_from_blocks2(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
-        def _get_logs_event(pair_address, start, end):
-            filter_sync = self.eth_event.sync_event_from_blocks_filter(pair_address, start, end)
-            # print('filter,', filter_sync)
-            block_events = filter_sync.get_all_entries()
-            # print('block_events', len(block_events))
-            return self.get_sync_events(block_events)
+        tx_sync_logs: list[LogReceipt] = await asyncio.gather(*tasks)
+        sync_events = [self.get_sync_events(tx_sync_log) for tx_sync_log in tx_sync_logs]
+        return sync_events
 
-        pairs_address = [p.address for p in pairs]
-        range_start = [n[0] for n in pairs_block_range]
-        range_end = [n[1] for n in pairs_block_range]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            logs_event = executor.map(_get_logs_event, pairs_address, range_start, range_end)
-        
-        return list(logs_event)
+
 
     def get_scan_event_from_blocks(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
         blocks = [self.eth_event.sync_event_from_blocks_filter(pair.address, block_range[0], block_range[1]) 

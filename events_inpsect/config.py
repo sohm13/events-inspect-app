@@ -4,7 +4,8 @@ from os import getenv
 # avalibale networks
 NETWORKS = {
     'bsc': {
-        'http_url': 'https://bsc-dataseed.binance.org/',
+        # 'http_url': 'https://bsc-dataseed.binance.org/',
+        'http_url': f'https://bsc--mainnet--rpc-archive.datahub.figment.io/apikey/{getenv("DATAHUB_KEY")}',
         'ws_url': f'wss://bsc--mainnet--ws.datahub.figment.io/apikey/{getenv("DATAHUB_KEY")}',
 
         'factories': {

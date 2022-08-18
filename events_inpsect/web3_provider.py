@@ -44,7 +44,6 @@ class MyWeb3(Web3):
     }
 
 
-
     def __init__(self, network_name: str):
         self.network = self.get_network(network_name)
 
@@ -68,7 +67,6 @@ class MyWeb3(Web3):
     def get_http_provider(self):
         '''
         '''
-        # HTTPProvider = Web3(AsyncHTTPProvider(self.network['http_url']), **self.get_web3_args())
         HTTPProvider = Web3(Web3.HTTPProvider(self.network['http_url']), **self.get_web3_args())
         HTTPProvider.middleware_onion.inject(geth_poa_middleware, layer=0)
         return HTTPProvider
@@ -81,10 +79,10 @@ class MyWeb3(Web3):
     def get_http_provider_async(self) -> AsyncHTTPProvider:
         '''
         '''
-        HTTPProvider = Web3(AsyncHTTPProvider(self.network['http_url']), modules={"eth": (AsyncEth,)}, middlewares=[])
-        HTTPProvider.middleware_onion.inject(async_geth_poa_middleware, layer=0)
+        provider = Web3(AsyncHTTPProvider(self.network['http_url']), modules={"eth": (AsyncEth,)}, middlewares=[])
+        provider.middleware_onion.inject(async_geth_poa_middleware, layer=0)
 
-        return HTTPProvider
+        return provider
 
 
 
