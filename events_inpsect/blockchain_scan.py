@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import concurrent.futures
-
+import time
 
 from web3 import Web3
 from web3._utils.filters import Filter
@@ -44,8 +44,9 @@ class BlockChainScan:
         events_return = self.get_sync_events(block_events)
         return events_return
 
-    def get_scan_event_from_blocks_async(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
+    async def get_scan_event_from_blocks_async(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
         '''
+        DONT WORK
         return [ 
                 [blocks SyncEvent], # pair[0]
                 [blocks SyncEvent], # pair[1]
@@ -54,7 +55,7 @@ class BlockChainScan:
         '''
         blocks = [self.eth_event.sync_event_from_blocks_filter(pair.address, block_range[0], block_range[1]) 
                     for pair, block_range in zip(pairs, pairs_block_range
-                    )]        
+                    )]
         tasks = [self.get_sync_events_async(block) for block in blocks]
         loop = asyncio.get_event_loop()
         try:
@@ -65,17 +66,34 @@ class BlockChainScan:
             loop.close()            
         return pairs_event_logs
 
+    def get_scan_event_from_blocks2(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
+        def _get_logs_event(pair_address, start, end):
+            filter_sync = self.eth_event.sync_event_from_blocks_filter(pair_address, start, end)
+            # print('filter,', filter_sync)
+            block_events = filter_sync.get_all_entries()
+            # print('block_events', len(block_events))
+            return self.get_sync_events(block_events)
+
+        pairs_address = [p.address for p in pairs]
+        range_start = [n[0] for n in pairs_block_range]
+        range_end = [n[1] for n in pairs_block_range]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            logs_event = executor.map(_get_logs_event, pairs_address, range_start, range_end)
+        
+        return list(logs_event)
+
     def get_scan_event_from_blocks(self, pairs_block_range: list[list], pairs: list[Pair]) -> list[list[Optional[SyncEvent]]]:
         blocks = [self.eth_event.sync_event_from_blocks_filter(pair.address, block_range[0], block_range[1]) 
                     for pair, block_range in zip(pairs, pairs_block_range
                     )]
         pairs_event_logs = []
-        for block in blocks:
+        for i, block in enumerate(blocks):
             block_events = block.get_all_entries()
             _sync_events = self.get_sync_events(block_events)
             pairs_event_logs.append(_sync_events)
         return pairs_event_logs
-        
+    
+
 
     def get_blocks(self, block_start: int, block_end: int) -> list[Block]:
         blocks_data = []

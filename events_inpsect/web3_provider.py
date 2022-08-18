@@ -9,15 +9,15 @@ from typing import (
     Union,
     # cast,
 )
-from web3 import Web3
-from web3.eth import Eth
+from web3 import Web3, AsyncHTTPProvider
+from web3.eth import Eth, AsyncEth
 from web3.net import Net
 from web3.version import Version
 from web3.parity import Parity, ParityPersonal
 from web3.geth import Geth, GethAdmin, GethMiner, GethPersonal, GethTxPool
 from web3.testing import Testing
 from web3.module import Module
-from web3.middleware import geth_poa_middleware
+from web3.middleware import geth_poa_middleware, async_geth_poa_middleware
 
 from . import config
 
@@ -71,13 +71,20 @@ class MyWeb3(Web3):
         # HTTPProvider = Web3(AsyncHTTPProvider(self.network['http_url']), **self.get_web3_args())
         HTTPProvider = Web3(Web3.HTTPProvider(self.network['http_url']), **self.get_web3_args())
         HTTPProvider.middleware_onion.inject(geth_poa_middleware, layer=0)
-
         return HTTPProvider
 
     def get_ws_provider(self):
         WebsocketProvider = Web3(Web3.WebsocketProvider(self.network['ws_url'] ))
         WebsocketProvider.middleware_onion.inject(geth_poa_middleware, layer=0)
-
         return WebsocketProvider
+
+    def get_http_provider_async(self) -> AsyncHTTPProvider:
+        '''
+        '''
+        HTTPProvider = Web3(AsyncHTTPProvider(self.network['http_url']), modules={"eth": (AsyncEth,)}, middlewares=[])
+        HTTPProvider.middleware_onion.inject(async_geth_poa_middleware, layer=0)
+
+        return HTTPProvider
+
 
 

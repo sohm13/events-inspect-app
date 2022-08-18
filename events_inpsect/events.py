@@ -46,3 +46,13 @@ class EthEvent:
                 EventLogsId.Sync,
             ]
         })
+
+    async def sync_event_from_blocks_filter_async(self, pair_address: str, block_start:int, block_end: int) -> Filter:
+        return await self.w3.eth.filter({
+            'address':pair_address,
+            'fromBlock': block_start,
+            'toBlock': block_end,
+            "topics":[
+                EventLogsId.Sync,
+            ]
+        })
