@@ -32,32 +32,31 @@ async def run(web3: MyWeb3):
         get_block_by_timestamp_async(web3, timestamp_start),
         get_block_by_timestamp_async(web3, timestamp_start+step)
     )
-
+    print('time for get_block_by_timestamp:', time.time()-tik)
     print('blocks for scan', block_end-block_start)
 
+    tik = time.time()
     blocks_range = [ [block_start, block_end] for _ in range(len(pairs))]
     pairs_data = await scan.get_scan_event_from_blocks_async(blocks_range, pairs)
 
     print('pairs_data len:', len(pairs_data), 'events:', sum([len(p) for p in pairs_data]))
-    print('time:', time.time() - tik)
+    print('time get_scan_event_from_blocks_async:', time.time() - tik)
 
 
+    tik =time.time()
+    blocks = await scan.get_blocks_async(block_start, block_end)
+    print('blocks', len(blocks))
+    print('time blocks', time.time() - tik)
 
-def run_multy_netowrks(networks_name: list[str] = ['bsc']):
-    pass
-    # web3s = [run(MyWeb3(name).get_http_provider_async()) for name in networks_name]
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    #     res = executor.map(asyncio.run, web3s )
-    # list(res)
+
 
 if __name__ == "__main__":
     import sys
-
+    
     network_name = sys.argv[1] if len(sys.argv) > 1 else 'bsc'
     print('network_name', network_name)
     w3 = MyWeb3(network_name).get_http_provider_async()
     asyncio.run(run(w3))
-    # run_multy_netowrks(['bsc', 'aurora'])
 
     
 

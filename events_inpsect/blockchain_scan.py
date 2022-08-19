@@ -93,4 +93,20 @@ class BlockChainScan:
         ) for block in blocks_data]
         return blocks
 
+    async def get_blocks_async(self, block_start: int, block_end: int) -> list[Block]:
+        blocks_data = []
+        tasks = [self.w3.eth.get_block(i) for i in range(block_start, block_end+1)]
+        blocks_data = await asyncio.gather(*tasks)
+
+        blocks = [Block(
+                timestamp = block.timestamp,
+                difficulty = block.difficulty,
+                hash = block.hash.hex(),
+                miner = block.miner,
+                number = block.number,
+                size = block.size,
+                transactions_count = len(block.transactions),
+                gas_used = block.gasUsed
+        ) for block in blocks_data]
+        return blocks
 
